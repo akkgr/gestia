@@ -1,0 +1,40 @@
+package main
+
+var routes = Routes{
+	Route{
+		"Index",
+		"GET",
+		"/",
+		Index,
+	},
+	Route{
+		"BuildIndex",
+		"GET",
+		"/buildings",
+		BuildIndex,
+	},
+	Route{
+		"BuildShow",
+		"GET",
+		"/buildings/{id}",
+		BuildShow,
+	},
+	Route{
+		"BuildInsert",
+		"POST",
+		"/buildings",
+		BuildInsert,
+	},
+	Route{
+		"BuildUpdate",
+		"PUT",
+		"/buildings/{id}",
+		BuildUpdate,
+	},
+	Route{
+		"BuildDelete",
+		"DELETE",
+		"/buildings/{id}",
+		BuildDelete,
+	},
+}
