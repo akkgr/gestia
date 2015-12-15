@@ -7,9 +7,8 @@ import (
 )
 
 const (
-	server = "localhost"
-	// database name
-	database = "hello"
+	server   = "localhost"
+	database = "estia"
 )
 
 func main() {
