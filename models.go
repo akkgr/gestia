@@ -8,11 +8,17 @@ type User struct {
 	Password string        `json:"password" bson:"Password"`
 }
 
+type GeoJson struct {
+	Type        string    `json:"-"`
+	Coordinates []float64 `json:"coordinates"`
+}
+
 type Address struct {
-	Area         string `json:"area" bson:"Area"`
-	Street       string `json:"street" bson:"Street"`
-	StreetNumber string `json:"streetnumber" bson:"StreetNumber"`
-	PostalCode   string `json:"postalcode" bson:"PostalCode"`
+	Area         string  `json:"area" bson:"Area"`
+	Street       string  `json:"street" bson:"Street"`
+	StreetNumber string  `json:"streetnumber" bson:"StreetNumber"`
+	PostalCode   string  `json:"postalcode" bson:"PostalCode"`
+	Location     GeoJson `json:"location" bson:"Location"`
 }
 
 type Building struct {
