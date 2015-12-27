@@ -2,39 +2,33 @@ package main
 
 var routes = Routes{
 	Route{
-		"Index",
-		"GET",
-		"/",
-		Index,
-	},
-	Route{
 		"BuildIndex",
 		"GET",
-		"/buildings",
+		"/api/buildings",
 		BuildIndex,
 	},
 	Route{
 		"BuildShow",
 		"GET",
-		"/buildings/{id}",
+		"/api/buildings/{id}",
 		BuildShow,
 	},
 	Route{
 		"BuildInsert",
 		"POST",
-		"/buildings",
+		"/api/buildings",
 		BuildInsert,
 	},
 	Route{
 		"BuildUpdate",
 		"PUT",
-		"/buildings/{id}",
+		"/api/buildings/{id}",
 		BuildUpdate,
 	},
 	Route{
 		"BuildDelete",
 		"DELETE",
-		"/buildings/{id}",
+		"/api/buildings/{id}",
 		BuildDelete,
 	},
 }

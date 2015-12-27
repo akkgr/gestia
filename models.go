@@ -1,6 +1,10 @@
 package main
 
-import "gopkg.in/mgo.v2/bson"
+import (
+	"encoding/json"
+
+	"gopkg.in/mgo.v2/bson"
+)
 
 type User struct {
 	Id       bson.ObjectId `json:"id" bson:"_id"`
@@ -21,7 +25,32 @@ type Address struct {
 	Location     GeoJson `json:"location" bson:"Location"`
 }
 
+type Appartment struct {
+	Title    string `json:"title" bson:"Title"`
+	Position int    `json:"position" bson:"Position"`
+}
+
 type Building struct {
-	Id      bson.ObjectId `json:"id" bson:"_id"`
-	Address Address       `json:"address" bson:"Address"`
+	Id          bson.ObjectId `json:"id" bson:"_id"`
+	Address     Address       `json:"address" bson:"Address"`
+	Oil         int64         `json:"oil" bson:"Oil"`
+	Fund        int64         `json:"fund" bson:"Fund"`
+	Active      bool          `json:"active" bson:"Active"`
+	Managment   bool          `json:"managment" bson:"Managment"`
+	Appartments []Appartment  `json:"appartments" bson:"Appartments"`
+}
+
+type PublicBuild Building
+
+func (b Building) MarshalJSON() ([]byte, error) {
+	if b.Appartments == nil {
+		b.Appartments = []Appartment{}
+	}
+	return json.Marshal(struct {
+		PublicBuild
+		Title string `json:"title"`
+	}{
+		PublicBuild: PublicBuild(b),
+		Title:       b.Address.Street + " " + b.Address.StreetNumber + ", " + b.Address.PostalCode + " " + b.Address.Area,
+	})
 }
