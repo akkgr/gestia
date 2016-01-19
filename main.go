@@ -4,6 +4,10 @@ import (
 	"log"
 	"net/http"
 	"os"
+
+	"github.com/NYTimes/gziphandler"
+	"github.com/gorilla/context"
+	"gopkg.in/mgo.v2"
 )
 
 const (
@@ -12,26 +16,26 @@ const (
 )
 
 func main() {
-
-	router := NewRouter()
 	log.SetOutput(os.Stderr)
 	log.Printf(
 		"%s\t%s",
 		"Server listening on ",
 		":8080",
 	)
-	log.Fatal(http.ListenAndServe(":8080", corsHandler(router)))
-}
 
-func corsHandler(h http.Handler) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == "OPTIONS" {
-			w.Header().Set("Access-Control-Allow-Origin", "*")
-			w.Header().Set("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE")
-			w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-			w.WriteHeader(http.StatusOK)
-		} else {
-			h.ServeHTTP(w, r)
-		}
+	db, err := mgo.Dial(server)
+	if err != nil {
+		log.Panic(err)
 	}
+	defer db.Close()
+
+	router := NewRouter()
+
+	withdb := WithDB(db, router)
+
+	withcors := corsHandler(withdb)
+
+	withGz := gziphandler.GzipHandler(withcors)
+
+	log.Fatal(http.ListenAndServe(":8080", context.ClearHandler(withGz)))
 }

@@ -5,27 +5,30 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/gorilla/context"
 	"github.com/gorilla/mux"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
 
-func BuildIndex(w http.ResponseWriter, r *http.Request) {
-	session, err := mgo.Dial(server)
-	if err != nil {
-		panic(err)
-	}
-	defer session.Close()
+const (
+	col = "buildings"
+)
 
-	c := session.DB(database).C("buildings")
+func BuildIndex(w http.ResponseWriter, r *http.Request) {
+	session := context.Get(r, "db").(*mgo.Session)
+
+	c := session.DB(database).C(col)
 	result := []Building{}
 
-	err = c.Find(nil).All(&result)
+	err := c.Find(nil).All(&result)
 
 	if err != nil {
-		log.Fatal(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(result)
 }
