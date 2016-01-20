@@ -1,12 +1,16 @@
 package main
 
 import (
+	"archive/zip"
+	"flag"
 	"log"
 	"net/http"
 	"os"
 
 	"github.com/NYTimes/gziphandler"
 	"github.com/gorilla/context"
+	"golang.org/x/tools/godoc/vfs/httpfs"
+	"golang.org/x/tools/godoc/vfs/zipfs"
 	"gopkg.in/mgo.v2"
 )
 
@@ -30,6 +34,16 @@ func main() {
 	defer db.Close()
 
 	router := NewRouter()
+
+	zipPath := flag.String("zip", "estia.static", "zip file containing assets")
+	flag.Parse()
+
+	rd, err := zip.OpenReader(*zipPath)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fs := zipfs.New(rd, *zipPath)
+	router.PathPrefix("/").Handler(http.FileServer(httpfs.New(fs)))
 
 	withdb := WithDB(db, router)
 
