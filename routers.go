@@ -2,16 +2,16 @@ package main
 
 var routes = Routes{
 	Route{
-		"BuildIndex",
+		"BuildList",
 		"GET",
 		"/api/buildings",
-		BuildIndex,
+		BuildList,
 	},
 	Route{
-		"BuildShow",
+		"BuildById",
 		"GET",
 		"/api/buildings/{id}",
-		BuildShow,
+		BuildById,
 	},
 	Route{
 		"BuildInsert",

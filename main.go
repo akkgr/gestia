@@ -35,15 +35,20 @@ func main() {
 
 	router := NewRouter()
 
-	zipPath := flag.String("zip", "estia.static", "zip file containing assets")
+	siteType := flag.String("type", "dir", "site path type zip or dir")
+	zipPath := flag.String("path", "www", "path containing assets")
 	flag.Parse()
 
-	rd, err := zip.OpenReader(*zipPath)
-	if err != nil {
-		log.Fatal(err)
+	if *siteType == "zip" {
+		rd, err := zip.OpenReader(*zipPath)
+		if err != nil {
+			log.Fatal(err)
+		}
+		fs := zipfs.New(rd, *zipPath)
+		router.PathPrefix("/").Handler(http.FileServer(httpfs.New(fs)))
+	} else {
+		router.PathPrefix("/").Handler(http.FileServer(http.Dir(*zipPath)))
 	}
-	fs := zipfs.New(rd, *zipPath)
-	router.PathPrefix("/").Handler(http.FileServer(httpfs.New(fs)))
 
 	withdb := WithDB(db, router)
 

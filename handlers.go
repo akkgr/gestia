@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 
 	"github.com/gorilla/context"
@@ -15,13 +14,13 @@ const (
 	col = "buildings"
 )
 
-func BuildIndex(w http.ResponseWriter, r *http.Request) {
+func BuildList(w http.ResponseWriter, r *http.Request) {
 	session := context.Get(r, "db").(*mgo.Session)
 
 	c := session.DB(database).C(col)
 	result := []Building{}
 
-	err := c.Find(nil).All(&result)
+	err := c.Find(nil).Sort("Address.Street", "Address.StreetNumber", "Address.Area").All(&result)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -33,7 +32,7 @@ func BuildIndex(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(result)
 }
 
-func BuildShow(w http.ResponseWriter, r *http.Request) {
+func BuildById(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 
@@ -42,50 +41,43 @@ func BuildShow(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	session, err := mgo.Dial("localhost")
-	if err != nil {
-		panic(err)
-	}
-	defer session.Close()
+	session := context.Get(r, "db").(*mgo.Session)
 
-	c := session.DB("estia").C("buildings")
+	c := session.DB(database).C(col)
 
 	result := Building{}
-	err = c.Find(bson.M{"_id": bson.ObjectIdHex(id)}).One(&result)
+	err := c.Find(bson.M{"_id": bson.ObjectIdHex(id)}).One(&result)
 	if err != nil {
-		log.Fatal(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(result); err != nil {
-		panic(err)
-	}
+	json.NewEncoder(w).Encode(result)
 }
 
 func BuildInsert(w http.ResponseWriter, r *http.Request) {
 	build := Building{}
 	if err := json.NewDecoder(r.Body).Decode(&build); err != nil {
-		panic(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 	build.Id = bson.NewObjectId()
 
-	session, err := mgo.Dial("localhost")
-	if err != nil {
-		panic(err)
-	}
-	defer session.Close()
+	session := context.Get(r, "db").(*mgo.Session)
 
-	c := session.DB("estia").C("buildings")
+	c := session.DB(database).C(col)
 
-	err = c.Insert(build)
+	err := c.Insert(build)
 	if err != nil {
-		log.Fatal(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(build); err != nil {
-		panic(err)
-	}
+	json.NewEncoder(w).Encode(build)
 }
 
 func BuildUpdate(w http.ResponseWriter, r *http.Request) {
@@ -101,26 +93,23 @@ func BuildUpdate(w http.ResponseWriter, r *http.Request) {
 
 	build := Building{}
 	if err := json.NewDecoder(r.Body).Decode(&build); err != nil {
-		panic(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
-	session, err := mgo.Dial("localhost")
+	session := context.Get(r, "db").(*mgo.Session)
+
+	c := session.DB(database).C(col)
+
+	err := c.UpdateId(oid, build)
 	if err != nil {
-		panic(err)
-	}
-	defer session.Close()
-
-	c := session.DB("estia").C("buildings")
-
-	err = c.UpdateId(oid, build)
-	if err != nil {
-		log.Fatal(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(build); err != nil {
-		panic(err)
-	}
+	json.NewEncoder(w).Encode(build)
 }
 
 func BuildDelete(w http.ResponseWriter, r *http.Request) {
@@ -134,17 +123,14 @@ func BuildDelete(w http.ResponseWriter, r *http.Request) {
 
 	oid := bson.ObjectIdHex(id)
 
-	session, err := mgo.Dial("localhost")
-	if err != nil {
-		panic(err)
-	}
-	defer session.Close()
+	session := context.Get(r, "db").(*mgo.Session)
 
-	c := session.DB("estia").C("buildings")
+	c := session.DB(database).C(col)
 
-	err = c.RemoveId(oid)
+	err := c.RemoveId(oid)
 	if err != nil {
-		log.Fatal(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	w.WriteHeader(http.StatusOK)
