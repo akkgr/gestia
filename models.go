@@ -8,8 +8,9 @@ import (
 
 type User struct {
 	Id       bson.ObjectId `json:"id" bson:"_id"`
-	Usename  string        `json:"username" bson:"Username"`
-	Password string        `json:"password" bson:"Password"`
+	Username string        `json:"username" bson:"Username"`
+	Password string        `json:"-" bson:"Password"`
+	Token    string        `json:"token" bson:"-"`
 }
 
 type GeoJson struct {

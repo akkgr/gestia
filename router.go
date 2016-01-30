@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -22,11 +21,7 @@ func NewRouter() *mux.Router {
 
 	tokenAuth := NewTokenAuth(nil, nil, memStore, nil)
 
-	router.HandleFunc("/login/{id}", func(w http.ResponseWriter, req *http.Request) {
-		vars := mux.Vars(req)
-		t := memStore.NewToken(vars["id"])
-		fmt.Fprintf(w, "hi %s, your token is %s", vars["id"], t)
-	})
+	router.HandleFunc("/login", LogIn).Methods("POST")
 
 	for _, route := range routes {
 		var handler http.Handler
