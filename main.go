@@ -19,6 +19,8 @@ const (
 	database = "estia"
 )
 
+var memStore = New("salty")
+
 func main() {
 	log.SetOutput(os.Stderr)
 	log.Printf(
@@ -56,5 +58,5 @@ func main() {
 
 	withGz := gziphandler.GzipHandler(withcors)
 
-	log.Fatal(http.ListenAndServe(":8080", context.ClearHandler(withGz)))
+	log.Fatal(http.ListenAndServeTLS(":8080", "cert.pem", "key.pem", context.ClearHandler(withGz)))
 }
