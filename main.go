@@ -38,7 +38,7 @@ func main() {
 	router := NewRouter()
 
 	siteType := flag.String("type", "dir", "site path type zip or dir")
-	zipPath := flag.String("path", "www", "path containing assets")
+	zipPath := flag.String("path", "wwwroot", "path containing assets")
 	flag.Parse()
 
 	if *siteType == "zip" {
