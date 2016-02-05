@@ -14,6 +14,12 @@ var routes = Routes{
 		BuildById,
 	},
 	Route{
+		"BuildByCategory",
+		"GET",
+		"/api/buildings/{inact}/{act}/{mng}/{nomng}",
+		BuildByCategory,
+	},
+	Route{
 		"BuildInsert",
 		"POST",
 		"/api/buildings",

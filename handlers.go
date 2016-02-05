@@ -84,6 +84,59 @@ func BuildById(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(result)
 }
 
+func BuildByCategory(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	inact := vars["inact"]
+	act := vars["act"]
+	mng := vars["mng"]
+	nomng := vars["nomng"]
+
+	session := context.Get(r, "db").(*mgo.Session)
+
+	c := session.DB(database).C(col)
+
+	result := []Building{}
+	filter := bson.M{}
+
+	if inact == "true" && act == "false" {
+		filter["Active"] = false
+	}
+
+	if inact == "false" && act == "true" {
+		filter["Active"] = true
+	}
+
+	if nomng == "true" && mng == "false" {
+		filter["Managment"] = false
+	}
+
+	if nomng == "false" && mng == "true" {
+		filter["Managment"] = true
+	}
+
+	if inact == "true" && act == "true" && nomng == "true" && mng == "true" {
+		filter = nil
+	}
+
+	if inact == "false" && act == "false" && nomng == "false" && mng == "false" {
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(result)
+		return
+	}
+
+	err := c.Find(filter).Sort("Address.Street", "Address.StreetNumber", "Address.Area").All(&result)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(result)
+}
+
 func BuildInsert(w http.ResponseWriter, r *http.Request) {
 	build := Building{}
 	if err := json.NewDecoder(r.Body).Decode(&build); err != nil {
