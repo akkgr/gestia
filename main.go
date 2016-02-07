@@ -38,7 +38,7 @@ func main() {
 	router := NewRouter()
 
 	siteType := flag.String("type", "dir", "site path type zip or dir")
-	zipPath := flag.String("path", "wwwroot", "path containing assets")
+	sitePath := flag.String("path", "wwwroot", "path containing site")
 	flag.Parse()
 
 	if *siteType == "zip" {
@@ -46,10 +46,10 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		fs := zipfs.New(rd, *zipPath)
+		fs := zipfs.New(rd, *sitePath)
 		router.PathPrefix("/").Handler(http.FileServer(httpfs.New(fs)))
 	} else {
-		router.PathPrefix("/").Handler(http.FileServer(http.Dir(*zipPath)))
+		router.PathPrefix("/").Handler(http.FileServer(http.Dir(*sitePath)))
 	}
 
 	withdb := WithDB(db, router)
