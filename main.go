@@ -7,27 +7,29 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/NYTimes/gziphandler"
 	"github.com/gorilla/context"
+	"github.com/gorilla/handlers"
 	"golang.org/x/tools/godoc/vfs/httpfs"
 	"golang.org/x/tools/godoc/vfs/zipfs"
 	"gopkg.in/mgo.v2"
 )
 
-const (
-	server   = "localhost"
-	database = "estia"
-)
-
-var memStore = New("salty")
+var memStore = NewMemoryTokenStore("salty")
+var server string
+var database string
 
 func main() {
 	log.SetOutput(os.Stderr)
-	log.Printf(
-		"%s\t%s",
-		"Server listening on ",
-		":8080",
-	)
+
+	port := flag.String("port", "8080", "server listening tcp port")
+	dbServer := flag.String("server", "localhost", "database server")
+	dbName := flag.String("db", "estia", "database name")
+	siteType := flag.String("type", "dir", "site path type zip or dir")
+	sitePath := flag.String("path", "wwwroot", "path containing site")
+	flag.Parse()
+
+	server = *dbServer
+	database = *dbName
 
 	db, err := mgo.Dial(server)
 	if err != nil {
@@ -36,13 +38,8 @@ func main() {
 	defer db.Close()
 
 	router := NewRouter()
-
-	siteType := flag.String("type", "dir", "site path type zip or dir")
-	sitePath := flag.String("path", "wwwroot", "path containing site")
-	flag.Parse()
-
 	if *siteType == "zip" {
-		rd, err := zip.OpenReader(*zipPath)
+		rd, err := zip.OpenReader(*sitePath)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -52,11 +49,19 @@ func main() {
 		router.PathPrefix("/").Handler(http.FileServer(http.Dir(*sitePath)))
 	}
 
-	withdb := WithDB(db, router)
+	withLog := handlers.LoggingHandler(os.Stdout, router)
 
-	withcors := corsHandler(withdb)
+	withdb := WithDB(db, withLog)
 
-	withGz := gziphandler.GzipHandler(withcors)
+	withcors := handlers.CORS()(withdb)
 
-	log.Fatal(http.ListenAndServeTLS(":8080", "cert.pem", "key.pem", context.ClearHandler(withGz)))
+	withGz := handlers.CompressHandler(withcors)
+
+	log.Printf(
+		"%s\t%s",
+		"Server listening on ",
+		*port,
+	)
+
+	log.Fatal(http.ListenAndServeTLS(":"+*port, "cert.pem", "key.pem", context.ClearHandler(withGz)))
 }

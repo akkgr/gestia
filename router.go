@@ -17,9 +17,8 @@ type Routes []Route
 
 func NewRouter() *mux.Router {
 
-	router := mux.NewRouter().StrictSlash(true)
-
 	tokenAuth := NewTokenAuth(nil, nil, memStore, nil)
+	router := mux.NewRouter().StrictSlash(true)
 
 	router.HandleFunc("/login", LogIn).Methods("POST")
 
@@ -27,7 +26,6 @@ func NewRouter() *mux.Router {
 		var handler http.Handler
 
 		handler = tokenAuth.HandleFunc(route.HandlerFunc)
-		handler = Logger(handler, route.Name)
 
 		router.
 			Methods(route.Method).

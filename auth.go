@@ -200,7 +200,7 @@ func (s *MemoryTokenStore) NewToken(id interface{}) *MemoryToken {
 }
 
 /* Create a new memory store */
-func New(salt string) *MemoryTokenStore {
+func NewMemoryTokenStore(salt string) *MemoryTokenStore {
 	return &MemoryTokenStore{
 		salt:     salt,
 		tokens:   make(map[string]*MemoryToken),
