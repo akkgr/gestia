@@ -52,9 +52,13 @@ func (b Building) MarshalJSON() ([]byte, error) {
 	}
 	return json.Marshal(struct {
 		PublicBuild
-		Title string `json:"title"`
+		Title string  `json:"title"`
+		Lng   float64 `json:"lng"`
+		Lat   float64 `json:"lat"`
 	}{
 		PublicBuild: PublicBuild(b),
 		Title:       b.Address.Street + " " + b.Address.StreetNumber + ", " + b.Address.PostalCode + " " + b.Address.Area,
+		Lng:         b.Address.Location.Coordinates[0],
+		Lat:         b.Address.Location.Coordinates[1],
 	})
 }
